@@ -70,17 +70,7 @@ class _SalesScreenState extends State<SalesScreen> {
     final accent = habis ? Colors.red : _indigo;
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: habis
-          ? null
-          : () {
-              s.addToCart(p);
-              ScaffoldMessenger.of(context)
-                ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(
-                  content: Text('${p.name} ditambahkan'),
-                  duration: const Duration(milliseconds: 650),
-                ));
-            },
+      onTap: habis ? null : () => _askQty(p),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -126,6 +116,108 @@ class _SalesScreenState extends State<SalesScreen> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _askQty(Product p) async {
+    final maxQty = p.stock > 0 ? p.stock : 1;
+    final qty = await showModalBottomSheet<int>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        var q = 1;
+        return StatefulBuilder(
+          builder: (ctx, setSt) {
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      p.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      currency.format(p.price),
+                      style: const TextStyle(color: _indigo, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _roundBtn(Icons.remove, q > 1 ? () => setSt(() => q--) : null),
+                        Container(
+                          width: 72,
+                          alignment: Alignment.center,
+                          child: Text('$q', style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                        ),
+                        _roundBtn(Icons.add, q < maxQty ? () => setSt(() => q++) : null),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Stok tersedia: ${p.stock}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: _indigo,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
+                        onPressed: () => Navigator.pop(ctx, q),
+                        icon: const Icon(Icons.add_shopping_cart),
+                        label: Text('Tambah $q ke keranjang', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (qty == null || qty < 1 || !mounted) return;
+    context.read<AppState>().addToCart(p, qty: qty);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text('${p.name} x$qty ditambahkan'),
+        duration: const Duration(milliseconds: 700),
+      ));
+  }
+
+  Widget _roundBtn(IconData icon, VoidCallback? onTap) {
+    return Material(
+      color: onTap == null ? Colors.grey.shade200 : const Color(0xFFEEF2FF),
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, color: onTap == null ? Colors.grey : _indigo),
         ),
       ),
     );
