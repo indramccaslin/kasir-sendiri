@@ -17,9 +17,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
-    return Scaffold(
-      appBar: AppBar(title: const Text('Pelanggan')),
-      body: Column(
+    return Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
@@ -48,7 +46,6 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ),
           ),
         ],
-      ),
     );
   }
 

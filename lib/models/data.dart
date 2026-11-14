@@ -4,6 +4,7 @@ class Product {
   String? category;
   double price;
   double retailPrice;
+  double basePrice;
   int stock;
   String? barcode;
 
@@ -13,6 +14,7 @@ class Product {
     this.category,
     required this.price,
     required this.retailPrice,
+    this.basePrice = 0,
     this.stock = 0,
     this.barcode,
   });
@@ -24,6 +26,7 @@ class Product {
       'category': category,
       'price': price,
       'retail_price': retailPrice,
+      'base_price': basePrice,
       'stock': stock,
       'barcode': barcode,
     };
@@ -36,6 +39,7 @@ class Product {
       category: m['category'],
       price: (m['price'] ?? 0).toDouble(),
       retailPrice: (m['retail_price'] ?? 0).toDouble(),
+      basePrice: (m['base_price'] ?? 0).toDouble(),
       stock: m['stock'] ?? 0,
       barcode: m['barcode'],
     );

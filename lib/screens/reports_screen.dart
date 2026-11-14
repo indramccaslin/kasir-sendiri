@@ -43,9 +43,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final s = context.watch<AppState>();
     final paid = s.sales.where((x) => x.status == 'paid').toList();
     final count = paid.length;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Laporan Penjualan')),
-      body: Column(
+    return Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -53,6 +51,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
               children: [
                 Text('Tanggal: ${dateFmt.format(_day)}', style: const TextStyle(fontSize: 16)),
                 const Spacer(),
+                IconButton(onPressed: _load, icon: const Icon(Icons.refresh), tooltip: 'Muat ulang'),
+                const SizedBox(width: 4),
                 ElevatedButton.icon(onPressed: _pickDate, icon: const Icon(Icons.calendar_today), label: const Text('Pilih')),
               ],
             ),
@@ -90,8 +90,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(onPressed: _load, child: const Icon(Icons.refresh)),
     );
   }
 

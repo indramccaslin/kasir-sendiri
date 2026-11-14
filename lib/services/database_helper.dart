@@ -20,12 +20,15 @@ class DatabaseHelper {
   Future<Database> _initDb() async {
     final dir = await getApplicationDocumentsDirectory();
     final p = join(dir.path, 'kasir_sendiri.db');
-    return await openDatabase(p, version: 1, onCreate: (db, version) async {
+    return await openDatabase(
+      p,
+      version: 2,
+      onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE products(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT, category TEXT, price REAL, retail_price REAL,
-          stock INTEGER DEFAULT 0, barcode TEXT
+          base_price REAL DEFAULT 0, stock INTEGER DEFAULT 0, barcode TEXT
         )
       ''');
       await db.execute('''
@@ -48,7 +51,13 @@ class DatabaseHelper {
           FOREIGN KEY(sale_id) REFERENCES sales(id)
         )
       ''');
-    });
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE products ADD COLUMN base_price REAL DEFAULT 0');
+        }
+      },
+    );
   }
 
   Future<int> insertProduct(Product p) async {

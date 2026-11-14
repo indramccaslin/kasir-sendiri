@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'services/app_state.dart';
-import 'screens/home_screen.dart';
-import 'screens/products_screen.dart';
-import 'screens/sales_screen.dart';
-import 'screens/customers_screen.dart';
-import 'screens/reports_screen.dart';
+import 'screens/root_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   runApp(const KasirApp());
 }
 
@@ -24,14 +23,14 @@ class KasirApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: true,
           colorSchemeSeed: const Color(0xFF6366F1),
+          scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF6366F1),
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
         ),
-        home: const HomeScreen(),
-        routes: {
-          '/products': (context) => const ProductsScreen(),
-          '/sales': (context) => const SalesScreen(),
-          '/customers': (context) => const CustomersScreen(),
-          '/reports': (context) => const ReportsScreen(),
-        },
+        home: const RootScreen(),
       ),
     );
   }

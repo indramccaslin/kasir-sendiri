@@ -22,9 +22,7 @@ class _SalesScreenState extends State<SalesScreen> {
     final s = context.watch<AppState>();
     final filtered = s.products.where((p) => p.name.toLowerCase().contains(_search.toLowerCase())).toList();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Transaksi')),
-      body: Row(
+    return Row(
         children: [
           Expanded(flex: 2, child: Column(
             children: [
@@ -67,7 +65,6 @@ class _SalesScreenState extends State<SalesScreen> {
             ],
           )),
         ],
-      ),
     );
   }
 
