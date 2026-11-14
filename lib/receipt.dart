@@ -96,7 +96,7 @@ class _ReceiptSheet extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     style: FilledButton.styleFrom(backgroundColor: const Color(0xFF4F46E5)),
-                    onPressed: () => Share.share(text),
+                    onPressed: () => SharePlus.instance.share(ShareParams(text: text)),
                     icon: const Icon(Icons.share),
                     label: const Text('Bagikan'),
                   ),
