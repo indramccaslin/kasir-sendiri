@@ -4,6 +4,7 @@ import '../services/app_state.dart';
 import '../models/data.dart';
 import '../format.dart';
 import '../categories.dart';
+import '../receipt.dart';
 import 'products_screen.dart';
 
 const _indigo = Color(0xFF4F46E5);
@@ -218,6 +219,7 @@ class _SalesScreenState extends State<SalesScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
+                onTap: () => showReceipt(context, t),
                 leading: CircleAvatar(
                   backgroundColor: const Color(0xFFEEF2FF),
                   child: Icon(categoryIcon(t.category), color: _indigo, size: 20),
@@ -292,7 +294,7 @@ class _SalesScreenState extends State<SalesScreen> {
       return;
     }
     final p = prods.firstWhere((e) => e.id == _productId);
-    await s.addTxn(Txn(
+    final txn = Txn(
       date: DateTime.now(),
       category: _cat,
       productName: p.name,
@@ -301,7 +303,8 @@ class _SalesScreenState extends State<SalesScreen> {
       basePrice: _base,
       price: _price,
       note: _noteC.text.trim().isEmpty ? null : _noteC.text.trim(),
-    ));
+    );
+    await s.addTxn(txn);
     _targetC.clear();
     _noteC.clear();
     setState(() {
@@ -310,6 +313,6 @@ class _SalesScreenState extends State<SalesScreen> {
       _baseC.clear();
       _priceC.clear();
     });
-    messenger.showSnackBar(const SnackBar(content: Text('Transaksi disimpan')));
+    if (mounted) showReceipt(context, txn);
   }
 }
