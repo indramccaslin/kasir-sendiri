@@ -18,7 +18,7 @@ class KasirApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AppState()..init(),
       child: MaterialApp(
-        title: 'Kasir Sendiri',
+        title: 'PULSA PPOB VOUCHER',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

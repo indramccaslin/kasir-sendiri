@@ -1,38 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/app_state.dart';
-import 'package:intl/intl.dart';
+import '../models/data.dart';
+import '../format.dart';
 
-final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
+  final void Function(int) onOpen;
   const HomeScreen({super.key, required this.onOpen});
-  final ValueChanged<int> onOpen;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  double today = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final s = context.read<AppState>();
-    final t = await s.todayTotal();
-    if (mounted) setState(() => today = t);
-  }
+  IconData _catIcon(String c) =>
+      c == 'Pulsa' ? Icons.smartphone : c == 'PPOB' ? Icons.receipt_long : Icons.card_giftcard;
 
   @override
   Widget build(BuildContext context) {
     final s = context.watch<AppState>();
+    final today = s.onDay(DateTime.now());
+    final omzet = s.sumTotal(today);
+    final laba = s.sumProfit(today);
+    final modal = s.sumModal(today);
+
     return RefreshIndicator(
-      onRefresh: _load,
+      onRefresh: s.refresh,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -49,110 +37,126 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Penjualan Hari Ini', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(height: 8),
-                Text(currency.format(today), style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(DateFormat('EEEE, dd MMM yyyy', 'id_ID').format(DateTime.now()), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                const Text('Omzet hari ini', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                const SizedBox(height: 6),
+                Text(rupiah.format(omzet),
+                    style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                Row(children: [
+                  _mini('Laba', rupiah.format(laba), Icons.trending_up),
+                  const SizedBox(width: 16),
+                  _mini('Modal', rupiah.format(modal), Icons.payments_outlined),
+                  const SizedBox(width: 16),
+                  _mini('Transaksi', '${today.length}', Icons.receipt_long),
+                ]),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _miniStat('Produk', '${s.products.length}', Icons.inventory_2_rounded, Colors.green)),
-              const SizedBox(width: 12),
-              Expanded(child: _miniStat('Pelanggan', '${s.customers.length}', Icons.people_alt_rounded, Colors.orange)),
-              const SizedBox(width: 12),
-              Expanded(child: _miniStat('Transaksi', '${s.sales.length}', Icons.receipt_long_rounded, Colors.blue)),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text('Aksi Cepat', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.9,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            children: [
-              _quick('Transaksi', Icons.point_of_sale_rounded, Colors.indigo, () => widget.onOpen(2)),
-              _quick('Produk', Icons.inventory_2_rounded, Colors.green, () => widget.onOpen(1)),
-              _quick('Pelanggan', Icons.people_alt_rounded, Colors.orange, () => widget.onOpen(3)),
-              _quick('Laporan', Icons.bar_chart_rounded, Colors.blue, () => widget.onOpen(4)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Produk Terbaru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ],
-          ),
+          const Text('Per kategori (hari ini)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           const SizedBox(height: 8),
-          if (s.products.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(child: Text('Belum ada produk. Tambahkan di menu Produk.', style: TextStyle(color: Colors.grey))),
-            )
-          else
-            ...s.products.take(6).map((p) => Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFEEF2FF),
-                      child: Text(p.name.isNotEmpty ? p.name[0].toUpperCase() : '?', style: const TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold)),
-                    ),
-                    title: Text(p.name),
-                    subtitle: Text('Stok ${p.stock}  •  ${currency.format(p.price)}'),
-                    trailing: Text(currency.format(p.price), style: const TextStyle(fontWeight: FontWeight.bold)),
+          Row(
+            children: kCategories.map((c) {
+              final v = s.sumTotal(today.where((t) => t.category == c));
+              final last = c == kCategories.last;
+              return Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(right: last ? 0 : 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(_catIcon(c), color: const Color(0xFF4F46E5), size: 20),
+                      const SizedBox(height: 8),
+                      Text(c, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(rupiah.format(v),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ],
                   ),
-                )),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          Row(children: [
+            Expanded(child: _action('Transaksi Baru', Icons.add_circle, () => onOpen(1))),
+            const SizedBox(width: 8),
+            Expanded(child: _action('Kelola Produk', Icons.inventory_2, () => onOpen(2))),
+            const SizedBox(width: 8),
+            Expanded(child: _action('Laporan', Icons.bar_chart, () => onOpen(4))),
+          ]),
+          const SizedBox(height: 20),
+          const Text('Transaksi terakhir', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          const SizedBox(height: 4),
+          if (s.transactions.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: Text('Belum ada transaksi', style: TextStyle(color: Colors.grey))),
+            ),
+          ...s.transactions.take(6).map((t) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: const Color(0xFFEEF2FF),
+                    child: Icon(_catIcon(t.category), color: const Color(0xFF4F46E5), size: 20),
+                  ),
+                  title: Text(t.productName, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text('${t.target} • ${dateFmt.format(t.date)}'),
+                  trailing: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(rupiah.format(t.total), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text('+${rupiah.format(t.profit)}',
+                          style: const TextStyle(fontSize: 11, color: Colors.green)),
+                    ],
+                  ),
+                ),
+              )),
         ],
       ),
     );
   }
 
-  Widget _miniStat(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 8),
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-          Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-
-  Widget _quick(String title, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
-        ),
-        child: Row(
+  Widget _mini(String label, String value, IconData ic) => Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color),
-            const SizedBox(width: 10),
-            Expanded(child: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold))),
+            Row(children: [
+              Icon(ic, color: Colors.white70, size: 14),
+              const SizedBox(width: 4),
+              Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            ]),
+            const SizedBox(height: 2),
+            Text(value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
-      ),
-    );
-  }
+      );
+
+  Widget _action(String label, IconData ic, VoidCallback onTap) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)],
+          ),
+          child: Column(children: [
+            Icon(ic, color: const Color(0xFF4F46E5)),
+            const SizedBox(height: 6),
+            Text(label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+          ]),
+        ),
+      );
 }

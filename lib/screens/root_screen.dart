@@ -15,18 +15,16 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   int _index = 0;
 
-  static const _titles = ['Dashboard', 'Produk & Jasa', 'Transaksi', 'Pelanggan', 'Laporan'];
+  static const _titles = ['Dashboard', 'Transaksi', 'Produk', 'Pelanggan', 'Laporan'];
 
-  void _select(int i) {
-    setState(() => _index = i);
-  }
+  void _select(int i) => setState(() => _index = i);
 
   @override
   Widget build(BuildContext context) {
     final pages = [
       HomeScreen(onOpen: _select),
-      const ProductsScreen(),
       const SalesScreen(),
+      const ProductsScreen(),
       const CustomersScreen(),
       const ReportsScreen(),
     ];
@@ -36,12 +34,12 @@ class _RootScreenState extends State<RootScreen> {
         title: Text(_titles[_index], style: const TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: false,
       ),
-      drawer: _buildDrawer(),
+      drawer: _drawer(),
       body: IndexedStack(index: _index, children: pages),
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _drawer() {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -63,17 +61,18 @@ class _RootScreenState extends State<RootScreen> {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.store, color: Color(0xFF4F46E5), size: 28),
+                  child: Icon(Icons.account_balance_wallet, color: Color(0xFF4F46E5), size: 26),
                 ),
                 SizedBox(height: 12),
-                Text('KASIR TOKO', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                Text('Aplikasi kasir pribadi', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                Text('PULSA PPOB VOUCHER',
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Catatan transaksi harian', style: TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
           ),
           _item('Dashboard', Icons.dashboard_rounded, 0),
-          _item('Produk & Jasa', Icons.inventory_2_rounded, 1),
-          _item('Transaksi', Icons.point_of_sale_rounded, 2),
+          _item('Transaksi', Icons.point_of_sale_rounded, 1),
+          _item('Produk', Icons.inventory_2_rounded, 2),
           _item('Pelanggan', Icons.people_alt_rounded, 3),
           _item('Laporan', Icons.bar_chart_rounded, 4),
         ],

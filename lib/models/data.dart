@@ -1,146 +1,106 @@
+const kCategories = ['Pulsa', 'PPOB', 'Voucher'];
+
+double toNum(String? s) {
+  final t = (s ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+  return double.tryParse(t) ?? 0;
+}
+
 class Product {
   int? id;
+  String category;
   String name;
-  String? category;
-  double price;
-  double retailPrice;
   double basePrice;
-  int stock;
-  String? barcode;
+  double price;
+  bool active;
 
   Product({
     this.id,
+    required this.category,
     required this.name,
-    this.category,
-    required this.price,
-    required this.retailPrice,
     this.basePrice = 0,
-    this.stock = 0,
-    this.barcode,
+    this.price = 0,
+    this.active = true,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'category': category,
-      'price': price,
-      'retail_price': retailPrice,
-      'base_price': basePrice,
-      'stock': stock,
-      'barcode': barcode,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'category': category,
+        'name': name,
+        'base_price': basePrice,
+        'price': price,
+        'active': active ? 1 : 0,
+      };
 
-  factory Product.fromMap(Map<String, dynamic> m) {
-    return Product(
-      id: m['id'],
-      name: m['name'] ?? '',
-      category: m['category'],
-      price: (m['price'] ?? 0).toDouble(),
-      retailPrice: (m['retail_price'] ?? 0).toDouble(),
-      basePrice: (m['base_price'] ?? 0).toDouble(),
-      stock: m['stock'] ?? 0,
-      barcode: m['barcode'],
-    );
-  }
+  factory Product.fromMap(Map<String, dynamic> m) => Product(
+        id: m['id'],
+        category: m['category'] ?? 'Pulsa',
+        name: m['name'] ?? '',
+        basePrice: (m['base_price'] ?? 0).toDouble(),
+        price: (m['price'] ?? 0).toDouble(),
+        active: (m['active'] ?? 1) == 1,
+      );
+}
+
+class Txn {
+  int? id;
+  DateTime date;
+  String category;
+  String productName;
+  String target;
+  int qty;
+  double basePrice;
+  double price;
+  String? note;
+
+  Txn({
+    this.id,
+    required this.date,
+    required this.category,
+    required this.productName,
+    required this.target,
+    this.qty = 1,
+    this.basePrice = 0,
+    required this.price,
+    this.note,
+  });
+
+  double get total => price * qty;
+  double get profit => (price - basePrice) * qty;
+
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'date': date.toIso8601String(),
+        'category': category,
+        'product_name': productName,
+        'target': target,
+        'qty': qty,
+        'base_price': basePrice,
+        'price': price,
+        'note': note,
+      };
+
+  factory Txn.fromMap(Map<String, dynamic> m) => Txn(
+        id: m['id'],
+        date: DateTime.tryParse(m['date'] ?? '') ?? DateTime.now(),
+        category: m['category'] ?? 'Pulsa',
+        productName: m['product_name'] ?? '',
+        target: m['target'] ?? '',
+        qty: m['qty'] ?? 1,
+        basePrice: (m['base_price'] ?? 0).toDouble(),
+        price: (m['price'] ?? 0).toDouble(),
+        note: m['note'],
+      );
 }
 
 class Customer {
   int? id;
   String name;
   String? phone;
-  String? address;
 
-  Customer({this.id, required this.name, this.phone, this.address});
+  Customer({this.id, required this.name, this.phone});
 
-  Map<String, dynamic> toMap() {
-    return {'id': id, 'name': name, 'phone': phone, 'address': address};
-  }
+  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'phone': phone};
 
-  factory Customer.fromMap(Map<String, dynamic> m) {
-    return Customer(
-      id: m['id'],
-      name: m['name'] ?? '',
-      phone: m['phone'],
-      address: m['address'],
-    );
-  }
-}
-
-class SaleItem {
-  Product product;
-  int qty;
-  double price;
-
-  SaleItem({required this.product, required this.qty, required this.price});
-
-  double get subtotal => qty * price;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'product_id': product.id,
-      'qty': qty,
-      'price': price,
-    };
-  }
-}
-
-class Sale {
-  int? id;
-  DateTime date;
-  int customerId;
-  List<SaleItem> items;
-  double subtotal;
-  double tax;
-  double shipping;
-  double total;
-  double cash;
-  double change;
-  String status;
-
-  Sale({
-    this.id,
-    required this.date,
-    required this.customerId,
-    required this.items,
-    required this.subtotal,
-    required this.tax,
-    required this.shipping,
-    required this.total,
-    required this.cash,
-    required this.change,
-    this.status = 'paid',
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'date': date.toIso8601String(),
-      'customer_id': customerId,
-      'subtotal': subtotal,
-      'tax': tax,
-      'shipping': shipping,
-      'total': total,
-      'cash': cash,
-      'change': change,
-      'status': status,
-    };
-  }
-
-  factory Sale.fromMap(Map<String, dynamic> m) {
-    return Sale(
-      id: m['id'],
-      date: DateTime.tryParse(m['date'] ?? '') ?? DateTime.now(),
-      customerId: m['customer_id'] ?? 0,
-      items: [],
-      subtotal: (m['subtotal'] ?? 0).toDouble(),
-      tax: (m['tax'] ?? 0).toDouble(),
-      shipping: (m['shipping'] ?? 0).toDouble(),
-      total: (m['total'] ?? 0).toDouble(),
-      cash: (m['cash'] ?? 0).toDouble(),
-      change: (m['change'] ?? 0).toDouble(),
-      status: m['status'] ?? 'paid',
-    );
-  }
+  factory Customer.fromMap(Map<String, dynamic> m) =>
+      Customer(id: m['id'], name: m['name'] ?? '', phone: m['phone']);
 }

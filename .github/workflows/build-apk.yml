@@ -27,6 +27,9 @@ jobs:
       - name: Generate platform files
         run: flutter create . --platforms=android --project-name kasir_sendiri
 
+      - name: Set app label
+        run: sed -i 's/android:label="[^"]*"/android:label="PULSA PPOB VOUCHER"/' android/app/src/main/AndroidManifest.xml
+
       - name: Get dependencies
         run: flutter pub get
 

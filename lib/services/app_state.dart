@@ -1,50 +1,47 @@
 import 'package:flutter/material.dart';
 import '../models/data.dart';
-import '../services/database_helper.dart';
+import 'database_helper.dart';
 
 class AppState extends ChangeNotifier {
   final db = DatabaseHelper();
   List<Product> _products = [];
+  List<Txn> _txns = [];
   List<Customer> _customers = [];
-  List<Sale> _sales = [];
-  List<SaleItem> _cart = [];
-  int? _selectedCustomerId;
   bool _loading = true;
 
   List<Product> get products => _products;
+  List<Txn> get transactions => _txns;
   List<Customer> get customers => _customers;
-  List<Sale> get sales => _sales;
-  List<SaleItem> get cart => _cart;
-  int? get selectedCustomerId => _selectedCustomerId;
   bool get loading => _loading;
 
-  double get cartSubtotal => _cart.fold<double>(0.0, (sum, it) => sum + it.subtotal);
-  double get grandTotal => cartSubtotal;
+  List<Product> byCategory(String c) => _products.where((p) => p.category == c).toList();
 
   Future<void> init() async {
     _loading = true;
     notifyListeners();
     _products = await db.getProducts();
+    _txns = await db.getTransactions();
     _customers = await db.getCustomers();
-    _sales = await db.getSales();
     _loading = false;
     notifyListeners();
   }
 
   Future<void> addProduct(Product p) async {
     await db.insertProduct(p);
-    _products = await db.getProducts();
-    notifyListeners();
+    await _reloadProducts();
   }
 
   Future<void> updateProduct(Product p) async {
     await db.updateProduct(p);
-    _products = await db.getProducts();
-    notifyListeners();
+    await _reloadProducts();
   }
 
   Future<void> deleteProduct(int id) async {
     await db.deleteProduct(id);
+    await _reloadProducts();
+  }
+
+  Future<void> _reloadProducts() async {
     _products = await db.getProducts();
     notifyListeners();
   }
@@ -55,67 +52,26 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setCustomer(int? id) {
-    _selectedCustomerId = id;
+  Future<void> addTxn(Txn t) async {
+    await db.insertTxn(t);
+    _txns = await db.getTransactions();
     notifyListeners();
   }
 
-  void addToCart(Product p, {int qty = 1}) {
-    final idx = _cart.indexWhere((it) => it.product.id == p.id);
-    if (idx >= 0) {
-      _cart[idx] = SaleItem(product: _cart[idx].product, qty: _cart[idx].qty + qty, price: p.price);
-    } else {
-      _cart.add(SaleItem(product: p, qty: qty, price: p.price));
-    }
+  Future<void> deleteTxn(int id) async {
+    await db.deleteTxn(id);
+    _txns = await db.getTransactions();
     notifyListeners();
   }
 
-  void removeFromCart(int index) {
-    _cart.removeAt(index);
-    notifyListeners();
-  }
+  Future<void> refresh() => init();
 
-  void decrementItem(int index) {
-    final it = _cart[index];
-    if (it.qty <= 1) {
-      _cart.removeAt(index);
-    } else {
-      _cart[index] = SaleItem(product: it.product, qty: it.qty - 1, price: it.price);
-    }
-    notifyListeners();
-  }
+  static bool sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
-  void incrementItem(int index) {
-    final it = _cart[index];
-    _cart[index] = SaleItem(product: it.product, qty: it.qty + 1, price: it.price);
-    notifyListeners();
-  }
+  List<Txn> onDay(DateTime d) => _txns.where((t) => sameDay(t.date, d)).toList();
 
-  void clearCart() {
-    _cart.clear();
-    _selectedCustomerId = null;
-    notifyListeners();
-  }
-
-  Future<void> checkout({required double cash}) async {
-    final sale = Sale(
-      date: DateTime.now(),
-      customerId: _selectedCustomerId ?? 0,
-      items: List.from(_cart),
-      subtotal: cartSubtotal,
-      tax: 0,
-      shipping: 0,
-      total: grandTotal,
-      cash: cash,
-      change: cash - grandTotal,
-    );
-    await db.insertSale(sale);
-    _sales = await db.getSales();
-    clearCart();
-    notifyListeners();
-  }
-
-  Future<double> todayTotal() async => db.dailyTotal(DateTime.now());
-
-  Future<void> refresh() async => init();
+  double sumTotal(Iterable<Txn> l) => l.fold(0.0, (a, t) => a + t.total);
+  double sumModal(Iterable<Txn> l) => l.fold(0.0, (a, t) => a + t.basePrice * t.qty);
+  double sumProfit(Iterable<Txn> l) => l.fold(0.0, (a, t) => a + t.profit);
 }
