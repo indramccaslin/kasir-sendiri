@@ -4,7 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'models/data.dart';
 import 'format.dart';
 
-const kStoreName = 'KONTER PULSA PPOB VOUCHER';
+const kStoreName = 'GANESH STORE';
 
 String receiptText(Txn t) {
   final b = StringBuffer();
