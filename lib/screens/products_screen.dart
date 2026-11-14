@@ -112,28 +112,28 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void _add() {
     showDialog<void>(
       context: context,
-      builder: (_) => _ProductDialog(initialCategory: _cat),
+      builder: (_) => ProductDialog(initialCategory: _cat),
     );
   }
 
   void _edit(Product p) {
     showDialog<void>(
       context: context,
-      builder: (_) => _ProductDialog(product: p),
+      builder: (_) => ProductDialog(product: p),
     );
   }
 }
 
-class _ProductDialog extends StatefulWidget {
+class ProductDialog extends StatefulWidget {
   final Product? product;
   final String initialCategory;
-  const _ProductDialog({this.product, this.initialCategory = 'Pulsa'});
+  const ProductDialog({this.product, this.initialCategory = 'Pulsa'});
 
   @override
-  State<_ProductDialog> createState() => _ProductDialogState();
+  State<ProductDialog> createState() => ProductDialogState();
 }
 
-class _ProductDialogState extends State<_ProductDialog> {
+class ProductDialogState extends State<ProductDialog> {
   late String _cat = widget.product?.category ?? widget.initialCategory;
   late final _nameC = TextEditingController(text: widget.product?.name ?? '');
   late final _baseC = TextEditingController(

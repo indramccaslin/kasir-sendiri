@@ -4,6 +4,7 @@ import '../services/app_state.dart';
 import '../models/data.dart';
 import '../format.dart';
 import '../categories.dart';
+import 'products_screen.dart';
 
 const _indigo = Color(0xFF4F46E5);
 
@@ -79,35 +80,48 @@ class _SalesScreenState extends State<SalesScreen> {
                 }).toList(),
               ),
               const SizedBox(height: 12),
-              InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Produk / nominal',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    isExpanded: true,
-                    value: validId,
-                    hint: Text(prods.isEmpty ? 'Belum ada produk' : 'Pilih produk'),
-                    items: prods
-                        .map((p) => DropdownMenuItem<int>(
-                              value: p.id!,
-                              child: Text(p.name, overflow: TextOverflow.ellipsis),
-                            ))
-                        .toList(),
-                    onChanged: prods.isEmpty
-                        ? null
-                        : (v) {
-                            final p = prods.firstWhere((e) => e.id == v);
-                            setState(() {
-                              _productId = v;
-                              _baseC.text = p.basePrice.toStringAsFixed(0);
-                              _priceC.text = p.price.toStringAsFixed(0);
-                            });
-                          },
+              Row(
+                children: [
+                  Expanded(
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Produk / nominal',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int>(
+                          isExpanded: true,
+                          value: validId,
+                          hint: Text(prods.isEmpty ? 'Belum ada produk' : 'Pilih produk'),
+                          items: prods
+                              .map((p) => DropdownMenuItem<int>(
+                                    value: p.id!,
+                                    child: Text(p.name, overflow: TextOverflow.ellipsis),
+                                  ))
+                              .toList(),
+                          onChanged: prods.isEmpty
+                              ? null
+                              : (v) {
+                                  final p = prods.firstWhere((e) => e.id == v);
+                                  setState(() {
+                                    _productId = v;
+                                    _baseC.text = p.basePrice.toStringAsFixed(0);
+                                    _priceC.text = p.price.toStringAsFixed(0);
+                                  });
+                                },
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    style: IconButton.styleFrom(backgroundColor: _indigo, foregroundColor: Colors.white),
+                    tooltip: 'Tambah produk',
+                    onPressed: _quickAddProduct,
+                    icon: const Icon(Icons.add),
+                  ),
+                ],
               ),
               if (prods.isEmpty)
                 Padding(
@@ -253,6 +267,13 @@ class _SalesScreenState extends State<SalesScreen> {
           child: Icon(icon, color: onTap == null ? Colors.grey : _indigo),
         ),
       ),
+    );
+  }
+
+  Future<void> _quickAddProduct() async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => ProductDialog(initialCategory: _cat),
     );
   }
 
