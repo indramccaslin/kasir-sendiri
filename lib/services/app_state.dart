@@ -63,6 +63,22 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void decrementItem(int index) {
+    final it = _cart[index];
+    if (it.qty <= 1) {
+      _cart.removeAt(index);
+    } else {
+      _cart[index] = SaleItem(product: it.product, qty: it.qty - 1, price: it.price);
+    }
+    notifyListeners();
+  }
+
+  void incrementItem(int index) {
+    final it = _cart[index];
+    _cart[index] = SaleItem(product: it.product, qty: it.qty + 1, price: it.price);
+    notifyListeners();
+  }
+
   void clearCart() {
     _cart.clear();
     _selectedCustomerId = null;
