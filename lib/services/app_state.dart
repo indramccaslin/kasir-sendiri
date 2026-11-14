@@ -37,6 +37,18 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateProduct(Product p) async {
+    await db.updateProduct(p);
+    _products = await db.getProducts();
+    notifyListeners();
+  }
+
+  Future<void> deleteProduct(int id) async {
+    await db.deleteProduct(id);
+    _products = await db.getProducts();
+    notifyListeners();
+  }
+
   Future<void> addCustomer(Customer c) async {
     await db.insertCustomer(c);
     _customers = await db.getCustomers();

@@ -81,6 +81,11 @@ class DatabaseHelper {
     return await d.rawUpdate('UPDATE products SET stock = stock - ? WHERE id = ?', [qty, id]);
   }
 
+  Future<int> deleteProduct(int id) async {
+    final d = await db;
+    return await d.delete('products', where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<int> insertCustomer(Customer c) async {
     final d = await db;
     return await d.insert('customers', c.toMap());

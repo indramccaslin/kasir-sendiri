@@ -79,6 +79,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       margin: const EdgeInsets.only(bottom: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       child: ListTile(
+                        onTap: () => _edit(p),
                         leading: CircleAvatar(
                           backgroundColor: const Color(0xFFEEF2FF),
                           child: Text(p.name.isNotEmpty ? p.name[0].toUpperCase() : '?', style: const TextStyle(color: Color(0xFF4F46E5), fontWeight: FontWeight.bold)),
@@ -135,6 +136,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
   }
 
+  Future<void> _edit(Product p) async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => _EditProductDialog(product: p),
+    );
+  }
+
   @override
   void dispose() {
     _nameC.dispose();
@@ -142,5 +150,114 @@ class _ProductsScreenState extends State<ProductsScreen> {
     _priceC.dispose();
     _stockC.dispose();
     super.dispose();
+  }
+}
+
+class _EditProductDialog extends StatefulWidget {
+  final Product product;
+  const _EditProductDialog({required this.product});
+
+  @override
+  State<_EditProductDialog> createState() => _EditProductDialogState();
+}
+
+class _EditProductDialogState extends State<_EditProductDialog> {
+  late final _nameC = TextEditingController(text: widget.product.name);
+  late final _baseC = TextEditingController(text: widget.product.basePrice.toStringAsFixed(0));
+  late final _priceC = TextEditingController(text: widget.product.price.toStringAsFixed(0));
+  late final _stockC = TextEditingController(text: widget.product.stock.toString());
+
+  @override
+  void dispose() {
+    _nameC.dispose();
+    _baseC.dispose();
+    _priceC.dispose();
+    _stockC.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_nameC.text.trim().isEmpty) return;
+    final p = widget.product
+      ..name = _nameC.text.trim()
+      ..basePrice = double.tryParse(_baseC.text) ?? 0
+      ..price = double.tryParse(_priceC.text) ?? 0
+      ..stock = int.tryParse(_stockC.text) ?? 0;
+    await context.read<AppState>().updateProduct(p);
+    if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _delete() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus produk?'),
+        content: Text('Hapus "${widget.product.name}"? Tindakan ini tidak bisa dibatalkan.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await context.read<AppState>().deleteProduct(widget.product.id!);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Edit Produk'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameC,
+              decoration: const InputDecoration(labelText: 'Nama produk / jasa', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _baseC,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Harga dasar', border: OutlineInputBorder()),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _priceC,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Harga jual', border: OutlineInputBorder()),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _stockC,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Stok', prefixIcon: Icon(Icons.inventory), border: OutlineInputBorder()),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton.icon(
+          onPressed: _delete,
+          icon: const Icon(Icons.delete_outline, color: Colors.red),
+          label: const Text('Hapus', style: TextStyle(color: Colors.red)),
+        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+        FilledButton(onPressed: _save, child: const Text('Simpan')),
+      ],
+    );
   }
 }
