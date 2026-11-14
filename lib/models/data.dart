@@ -1,4 +1,15 @@
-const kCategories = ['Pulsa', 'PPOB', 'Voucher'];
+const kCategories = [
+  'Pulsa',
+  'Kuota',
+  'Voucher',
+  'Token Listrik',
+  'E-Wallet',
+  'Kartu Perdana',
+  'Aksesoris',
+  'Bayar Listrik',
+  'Bayar Air',
+  'Transfer Bank',
+];
 
 double toNum(String? s) {
   final t = (s ?? '').replaceAll(RegExp(r'[^0-9]'), '');

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/app_state.dart';
 import '../models/data.dart';
 import '../format.dart';
+import '../categories.dart';
 
 const _indigo = Color(0xFF4F46E5);
 
@@ -145,6 +146,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: const Color(0xFFEEF2FF),
+                  child: Icon(categoryIcon(t.category), color: _indigo, size: 20),
+                ),
                 title: Text('${t.productName} x${t.qty}',
                     style: const TextStyle(fontWeight: FontWeight.w600)),
                 subtitle: Text('${t.category} • ${t.target} • ${dateTimeFmt.format(t.date)}'),

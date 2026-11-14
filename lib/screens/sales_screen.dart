@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/app_state.dart';
 import '../models/data.dart';
 import '../format.dart';
+import '../categories.dart';
 
 const _indigo = Color(0xFF4F46E5);
 
@@ -119,8 +120,8 @@ class _SalesScreenState extends State<SalesScreen> {
                 controller: _targetC,
                 keyboardType: TextInputType.text,
                 decoration: InputDecoration(
-                  labelText: _cat == 'PPOB' ? 'Nomor / ID pelanggan' : 'Nomor HP tujuan',
-                  hintText: _cat == 'PPOB' ? 'mis. 12345678901' : 'mis. 08123456789',
+                  labelText: targetLabel(_cat),
+                  hintText: targetHint(_cat),
                   prefixIcon: const Icon(Icons.numbers),
                   border: const OutlineInputBorder(),
                 ),
@@ -205,15 +206,7 @@ class _SalesScreenState extends State<SalesScreen> {
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: const Color(0xFFEEF2FF),
-                  child: Icon(
-                    t.category == 'Pulsa'
-                        ? Icons.smartphone
-                        : t.category == 'PPOB'
-                            ? Icons.receipt_long
-                            : Icons.card_giftcard,
-                    color: _indigo,
-                    size: 20,
-                  ),
+                  child: Icon(categoryIcon(t.category), color: _indigo, size: 20),
                 ),
                 title: Text('${t.productName} x${t.qty}',
                     style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -269,8 +262,8 @@ class _SalesScreenState extends State<SalesScreen> {
       messenger.showSnackBar(const SnackBar(content: Text('Pilih produk dulu')));
       return;
     }
-    if (_targetC.text.trim().isEmpty) {
-      messenger.showSnackBar(const SnackBar(content: Text('Nomor tujuan wajib diisi')));
+    if (targetRequired(_cat) && _targetC.text.trim().isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text('${targetLabel(_cat)} wajib diisi')));
       return;
     }
     if (_price <= 0) {
@@ -282,7 +275,7 @@ class _SalesScreenState extends State<SalesScreen> {
       date: DateTime.now(),
       category: _cat,
       productName: p.name,
-      target: _targetC.text.trim(),
+      target: _targetC.text.trim().isEmpty ? '-' : _targetC.text.trim(),
       qty: _qty,
       basePrice: _base,
       price: _price,

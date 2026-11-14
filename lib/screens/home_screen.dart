@@ -3,13 +3,11 @@ import 'package:provider/provider.dart';
 import '../services/app_state.dart';
 import '../models/data.dart';
 import '../format.dart';
+import '../categories.dart';
 
 class HomeScreen extends StatelessWidget {
   final void Function(int) onOpen;
   const HomeScreen({super.key, required this.onOpen});
-
-  IconData _catIcon(String c) =>
-      c == 'Pulsa' ? Icons.smartphone : c == 'PPOB' ? Icons.receipt_long : Icons.card_giftcard;
 
   @override
   Widget build(BuildContext context) {
@@ -55,27 +53,39 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const Text('Per kategori (hari ini)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           const SizedBox(height: 8),
-          Row(
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            childAspectRatio: 2.8,
             children: kCategories.map((c) {
               final v = s.sumTotal(today.where((t) => t.category == c));
-              final last = c == kCategories.last;
-              return Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(right: last ? 0 : 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(_catIcon(c), color: const Color(0xFF4F46E5), size: 20),
-                      const SizedBox(height: 8),
-                      Text(c, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                      Text(rupiah.format(v),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                    ],
-                  ),
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    Icon(categoryIcon(c), color: const Color(0xFF4F46E5), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(c,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          Text(rupiah.format(v),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               );
             }).toList(),
@@ -102,7 +112,7 @@ class HomeScreen extends StatelessWidget {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: const Color(0xFFEEF2FF),
-                    child: Icon(_catIcon(t.category), color: const Color(0xFF4F46E5), size: 20),
+                    child: Icon(categoryIcon(t.category), color: const Color(0xFF4F46E5), size: 20),
                   ),
                   title: Text(t.productName, style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text('${t.target} • ${dateFmt.format(t.date)}'),

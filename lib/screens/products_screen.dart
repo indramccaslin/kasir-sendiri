@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/app_state.dart';
 import '../models/data.dart';
 import '../format.dart';
+import '../categories.dart';
 
 const _indigo = Color(0xFF4F46E5);
 
@@ -79,10 +80,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         onTap: () => _edit(p),
                         leading: CircleAvatar(
                           backgroundColor: const Color(0xFFEEF2FF),
-                          child: Text(
-                            p.name.isNotEmpty ? p.name[0].toUpperCase() : '?',
-                            style: const TextStyle(color: _indigo, fontWeight: FontWeight.bold),
-                          ),
+                          child: Icon(categoryIcon(p.category), color: _indigo, size: 20),
                         ),
                         title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
                         subtitle: Text(
