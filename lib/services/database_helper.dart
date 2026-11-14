@@ -94,7 +94,7 @@ class DatabaseHelper {
           'qty': it.qty,
           'price': it.price,
         });
-        await updateProductStock(it.product.id!, it.qty);
+        await txn.rawUpdate('UPDATE products SET stock = stock - ? WHERE id = ?', [it.qty, it.product.id]);
       }
       return id;
     });
@@ -111,6 +111,10 @@ class DatabaseHelper {
     final start = DateTime(day.year, day.month, day.day).toIso8601String();
     final end = DateTime(day.year, day.month, day.day, 23, 59, 59).toIso8601String();
     final maps = await d.query('sales', where: 'date BETWEEN ? AND ?', whereArgs: [start, end]);
-    return maps.fold(0, (sum, m) => sum + ((m['total'] ?? 0) as num).toDouble());
+    double total = 0;
+    for (final m in maps) {
+      total += ((m['total'] ?? 0) as num).toDouble();
+    }
+    return total;
   }
 }

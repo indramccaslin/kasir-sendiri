@@ -18,7 +18,7 @@ class AppState extends ChangeNotifier {
   int? get selectedCustomerId => _selectedCustomerId;
   bool get loading => _loading;
 
-  double get cartSubtotal => _cart.fold(0, (sum, it) => sum + it.subtotal);
+  double get cartSubtotal => _cart.fold<double>(0.0, (sum, it) => sum + it.subtotal);
   double get grandTotal => cartSubtotal;
 
   Future<void> init() async {
